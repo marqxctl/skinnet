@@ -59,7 +59,12 @@ Seven HAM10000 categories grouped into two classes:
 
 Grad-CAM was applied to generate class-discriminative saliency maps, localizing the spatial regions driving each prediction and supporting model auditability in a medical imaging context.
 
-> *Grad-CAM visualizations coming soon.*
+| | |
+|---|---|
+| ![True Positive](results/gradcam_examples/true_positive.png) | ![True Negative](results/gradcam_examples/true_negative.png) |
+| **True Positive** — activation concentrated over the lesion body, consistent with clinically relevant morphological features | **True Negative** — low activation across the lesion region, correctly attributed to a non-suspicious pattern |
+| ![False Positive](results/gradcam_examples/false_positive.png) | ![False Negative](results/gradcam_examples/false_negative.png) |
+| **False Positive** — saliency displaced outside the lesion, indicating spurious feature activation driving misclassification | **False Negative** — diffuse and unfocused activation, reflecting insufficient discriminative signal for malignancy detection |
 
 ---
 
@@ -75,7 +80,7 @@ Grad-CAM was applied to generate class-discriminative saliency maps, localizing 
 ## Author
 
 **Lucas Marques**  
-Software Engineer · Postgraduate in Database Administration · Postgraduate in Software Development
+Software Engineer · MSc. Database Administration · MSc. Software Development & Architecture
 
 ## License
 
