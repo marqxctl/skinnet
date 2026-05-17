@@ -15,25 +15,11 @@ using CNNs, transfer learning, fine-tuning and Grad-CAM interpretability.
 
 ---
 
-## Introduction
+## Overview
 
-This project presents a deep learning pipeline for binary classification of dermoscopic skin lesions suggestive of skin cancer using convolutional neural networks (CNNs), transfer learning, fine-tuning and Grad-CAM explainability techniques.
+This repository implements a convolutional deep learning pipeline for binary classification of dermoscopic skin lesions, targeting the automated detection of potentially malignant lesions. The pipeline encompasses data preprocessing, class imbalance handling, multi-architecture training with transfer learning and fine-tuning strategies, and post-hoc explainability via Gradient-weighted Class Activation Mapping (Grad-CAM).
 
-The project uses the HAM10000 dataset and compares different deep learning architectures, including:
-
-- Baseline CNN
-- ResNet50 with Transfer Learning
-- ResNet50 Fine-Tuned *(best model)*
-- EfficientNetB0
-
----
-
-## Objective
-
-Develop and evaluate deep learning models capable of classifying dermoscopic skin lesion images into:
-
-- **Suspicious lesions** — potentially malignant
-- **Non-suspicious lesions** — benign
+Four architectures were systematically evaluated: a custom baseline CNN, ResNet50 with frozen feature extraction, ResNet50 with selective layer fine-tuning, and EfficientNetB0 — all trained on the HAM10000 benchmark dataset.
 
 ---
 
@@ -41,33 +27,35 @@ Develop and evaluate deep learning models capable of classifying dermoscopic ski
 
 **HAM10000 — Human Against Machine with 10000 Training Images**
 
-> A large collection of multi-source dermatoscopic images of common pigmented skin lesions.
+> Multi-source dermatoscopic image collection for pigmented skin lesion analysis.
 
 🔗 [Kaggle — Skin Cancer MNIST: HAM10000](https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000)
 
-| Split | Images |
-|-------|--------|
+| Split | Samples |
+|-------|---------|
 | Train | 7,010 |
 | Validation | 1,502 |
 | Test | 1,503 |
 | **Total** | **10,015** |
 
-> Input images resized to **224×224 px** (RGB).
+> All images resized to **224 × 224 px** (RGB). Class imbalance addressed via weighted loss during training.
 
 ---
 
-## Binary Classification Strategy
+## Classification Protocol
 
-| Class | Lesion Types |
+Binary grouping of the seven original HAM10000 diagnostic categories:
+
+| Label | Lesion Types |
 |-------|-------------|
-| 🔴 **Suspicious** | Melanoma `mel`, Basal Cell Carcinoma `bcc`, Actinic Keratoses `akiec` |
-| 🟢 **Non-suspicious** | Melanocytic Nevi `nv`, Benign Keratosis-like Lesions `bkl`, Vascular Lesions `vasc`, Dermatofibroma `df` |
+| 🔴 **Suspicious** | Melanoma `mel` · Basal Cell Carcinoma `bcc` · Actinic Keratoses `akiec` |
+| 🟢 **Non-suspicious** | Melanocytic Nevi `nv` · Benign Keratosis-like Lesions `bkl` · Vascular Lesions `vasc` · Dermatofibroma `df` |
 
 ---
 
 ## Results
 
-### Overall Comparison
+### Model Comparison
 
 ![Models Comparison](results/models_comparison.png)
 
@@ -75,89 +63,37 @@ Develop and evaluate deep learning models capable of classifying dermoscopic ski
 |-------|----------|-----------|--------|----------|
 | CNN Baseline | 0.81 | — | — | — |
 | ResNet50 Transfer Learning | 0.79 | 0.47 | 0.86 | 0.61 |
-| **ResNet50 Fine-Tuned** | **0.86** | **0.60** | 0.77 | **0.68** |
+| **ResNet50 Fine-Tuned** | **0.86** | **0.60** | **0.77** | **0.68** |
 | EfficientNetB0 | 0.77 | 0.45 | 0.79 | 0.58 |
 
-> Metrics reported for the **suspicious class** (positive class). CNN Baseline failed to learn the minority class (precision/recall = 0).
+> All metrics reported for the **suspicious class** (positive class). The CNN Baseline collapsed to the majority class, yielding zero precision and recall for suspicious lesions.
 
 ---
 
 ### Best Model — ResNet50 Fine-Tuned
 
-#### Classification Report
+#### Per-class Classification Report
 
 | Class | Precision | Recall | F1-score | Support |
 |-------|-----------|--------|----------|---------|
 | Non-suspicious | 0.94 | 0.88 | 0.91 | 1,210 |
 | Suspicious | 0.60 | 0.77 | 0.68 | 293 |
-| **Macro avg** | **0.77** | **0.82** | **0.79** | 1,503 |
-| **Weighted avg** | **0.87** | **0.86** | **0.86** | 1,503 |
+| Macro avg | 0.77 | 0.82 | 0.79 | 1,503 |
+| Weighted avg | 0.87 | 0.86 | 0.86 | 1,503 |
 
 #### Confusion Matrix
 
 ![Confusion Matrix](results/confusion_matrix_resnet50_finetuned.png)
 
-#### Training Curves
-
-![Loss Curve](results/loss_resnet50_finetuned.png)
-![Accuracy Curve](results/accuracy_resnet50_finetuned.png)
+> The model correctly identified **225 of 293 suspicious lesions** (recall = 0.77), with 68 false negatives — a critical metric in clinical screening contexts where missed malignancies carry high risk.
 
 ---
 
-## Explainability with Grad-CAM
+## Explainability — Grad-CAM
 
-Gradient-weighted Class Activation Mapping (Grad-CAM) was applied to generate saliency maps that highlight the image regions most influential to model predictions, improving spatial interpretability in dermoscopic image analysis.
+Gradient-weighted Class Activation Mapping (Grad-CAM) was integrated as a post-hoc interpretability module, producing class-discriminative saliency maps that localize the spatial regions driving each prediction. This provides visual evidence of model behavior aligned with clinically relevant lesion features, supporting trust and auditability in a medical imaging context.
 
 > *Grad-CAM visualizations coming soon.*
-
----
-
-## Project Structure
-
-```txt
-skinnet/
-│
-├── notebooks/        # Jupyter notebooks (EDA, training, evaluation)
-├── models/           # Saved model weights (.keras)
-├── results/          # Metrics, plots, confusion matrices, Grad-CAM outputs
-│   ├── gradcam_examples/
-│   ├── models_comparison.png
-│   ├── confusion_matrix_resnet50_finetuned.png
-│   ├── loss_resnet50_finetuned.png
-│   ├── accuracy_resnet50_finetuned.png
-│   ├── metrics_comparison.csv
-│   └── experiment_metadata.json
-├── api/              # Inference API
-├── frontend/         # Web interface
-└── docs/             # Documentation and references
-```
-
----
-
-## Installation
-
-```bash
-git clone https://github.com/seu-usuario/skinnet.git
-cd skinnet
-pip install -r requirements.txt
-```
-
----
-
-## How to Run
-
-Run the notebooks in the following order:
-
-```
-1. notebooks/01_eda.ipynb              # Exploratory Data Analysis
-2. notebooks/02_baseline_cnn.ipynb     # Baseline CNN
-3. notebooks/03_resnet50_tl.ipynb      # ResNet50 Transfer Learning
-4. notebooks/04_resnet50_ft.ipynb      # ResNet50 Fine-Tuned
-5. notebooks/05_efficientnet.ipynb     # EfficientNetB0
-6. notebooks/06_gradcam.ipynb          # Grad-CAM Explainability
-```
-
-> All notebooks were developed and tested on **Google Colab** with GPU runtime (T4).
 
 ---
 
@@ -173,8 +109,6 @@ Run the notebooks in the following order:
 ## Author
 
 **Lucas Marques**
-Trabalho de Conclusão de Curso (TCC) — 2025
-Classificação Computacional de Lesões Cutâneas Sugestivas de Câncer de Pele
 
 ---
 
