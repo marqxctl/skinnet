@@ -1,0 +1,29 @@
+{
+    "author": "Lucas Marques",
+    "project": "Classifica\u00e7\u00e3o Computacional de Les\u00f5es Cut\u00e2neas Sugestivas de C\u00e2ncer de Pele",
+    "dataset": "HAM10000",
+    "total_images": 10015,
+    "task": "Classifica\u00e7\u00e3o bin\u00e1ria",
+    "classes": {
+        "0": "nao_suspeito",
+        "1": "suspeito"
+    },
+    "suspect_classes": [
+        "mel",
+        "bcc",
+        "akiec"
+    ],
+    "non_suspect_classes": [
+        "nv",
+        "bkl",
+        "vasc",
+        "df"
+    ],
+    "train_size": 7010,
+    "validation_size": 1502,
+    "test_size": 1503,
+    "best_model": "ResNet50 Fine Tuned",
+    "best_model_file": "resnet50_finetuned.keras",
+    "image_size": "224x224",
+    "framework": "TensorFlow/Keras"
+}
