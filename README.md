@@ -1,6 +1,7 @@
 # SkinNet
 
-Estudo experimental de modelos CNN para classificação binária de lesões cutâneas no HAM10000, com transfer learning, fine-tuning seletivo e interpretabilidade via Grad-CAM.
+Experimentos com redes neurais convolucionais para classificação binária de lesões cutâneas no HAM10000.  
+Setup baseado em transfer learning + fine-tuning seletivo + interpretação via Grad-CAM.
 
 ---
 
@@ -8,76 +9,79 @@ Estudo experimental de modelos CNN para classificação binária de lesões cut�
 
 HAM10000 — 10.015 imagens dermatoscópicas (7 classes)
 
-Split:
-- Train: 7.010
-- Val: 1.502
-- Test: 1.503
+Split fixo:
+- train: 7.010  
+- val: 1.502  
+- test: 1.503  
 
-Pré-processamento:
-- 224×224
-- normalização ImageNet
-- class-weighted loss
-
-Ref: Tschandl et al., Scientific Data (2018)
+Preprocess:
+- resize 224×224  
+- normalização ImageNet  
+- imbalance tratado via class-weighted loss  
 
 ---
 
-## Problema
+## Threat model (task collapse)
 
-Binário:
+Redução do espaço de rótulos:
 
-- Suspeita: `mel`, `bcc`, `akiec`
-- Não suspeita: `nv`, `bkl`, `vasc`, `df`
+- **positive (risk signal)**: `mel`, `bcc`, `akiec`
+- **negative (benign manifold)**: `nv`, `bkl`, `vasc`, `df`
 
----
-
-## Modelos
-
-- CNN baseline
-- ResNet50 (transfer learning)
-- ResNet50 (fine-tuned)
-- EfficientNetB0
-
-Loss: binary cross-entropy (weighted)
+Objetivo: maximizar recall na classe positiva (minimizar false negatives)
 
 ---
 
-## Resultados (test)
+## Models (feature extractors)
 
-| Modelo | Acc | Prec | Rec | F1 |
-|-------|-----|------|-----|----|
-| CNN | 0.81 | 0.00 | 0.00 | 0.00 |
+- CNN from scratch (baseline, low prior)
+- ResNet50 (pretrained backbone, frozen / partial unfreeze)
+- ResNet50 (fine-tuned, deep layers unlocked)
+- EfficientNetB0 (scaled conv net)
+
+Loss:
+- binary cross-entropy
+- class-weighted gradient scaling (imbalance correction)
+
+---
+
+## Results (test set)
+
+| model | acc | precision | recall | f1 |
+|------|-----|-----------|--------|----|
+| CNN baseline | 0.81 | 0.00 | 0.00 | 0.00 |
 | ResNet50 TL | 0.79 | 0.47 | 0.86 | 0.61 |
 | ResNet50 FT | **0.86** | **0.60** | **0.77** | **0.68** |
 | EfficientNetB0 | 0.77 | 0.45 | 0.79 | 0.58 |
 
-FN (suspeita): 68
+false negatives (positive class): 68  
+→ main failure mode = missed detection of malignant signal
 
 ---
 
-## Interpretabilidade
+## Interpretability layer (post-hoc forensics)
 
-Grad-CAM:
+Grad-CAM used as saliency probe over feature maps:
 
-- TP: foco na lesão
-- TN: ausência de ativação
-- FP: ativação espúria
-- FN: sinal difuso ou ausente
-
----
-
-## Observações
-
-- baseline colapsa na classe majoritária
-- transfer learning melhora recall
-- fine-tuning melhora trade-off global
-- FN é o principal risco clínico
+- TP: activation aligned with lesion manifold
+- TN: near-zero activation (clean separation)
+- FP: activation leakage into background noise
+- FN: weak or diffused gradients → lost signal in feature space
 
 ---
 
-## Referências
+## Observations (ML priors)
 
-- Tschandl et al., 2018
-- He et al., 2016
-- Tan & Le, 2019
-- Selvaraju et al., 2017
+- baseline CNN → overfits majority class distribution (mode collapse behavior)
+- pretrained backbones → better feature priors, improved separability
+- fine-tuning → unlocks deeper representation layers → best trade-off
+- FN remains critical failure channel (high-risk in medical triage setting)
+
+---
+
+## References
+
+- Tschandl et al., 2018 — HAM10000 dataset
+- He et al., 2016 — ResNet residual learning
+- Tan & Le, 2019 — EfficientNet scaling laws
+- Selvaraju et al., 2017 — Grad-CAM saliency maps
